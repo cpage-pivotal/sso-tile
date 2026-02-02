@@ -1,0 +1,12 @@
+---
+applications:
+  - name: sso-tile
+    memory: 1G
+    instances: 1
+    path: target/sso-tile-0.0.1-SNAPSHOT.jar
+    buildpacks:
+      - java_buildpack_offline
+    services:
+      - sso
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
