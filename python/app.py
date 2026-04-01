@@ -168,6 +168,21 @@ def get_user_name(user_info):
     return "Guest"
 
 
+def get_allowed_users():
+    """Load allowed user emails from ALLOWED_USERS environment variable."""
+    allowed = os.environ.get('ALLOWED_USERS', '')
+    return {email.strip().lower() for email in allowed.split(',') if email.strip()}
+
+
+def is_user_allowed(user_info):
+    """Check if the authenticated user is in the allowlist. Returns True if no allowlist is configured."""
+    allowed_users = get_allowed_users()
+    if not allowed_users:
+        return True
+    email = user_info.get('email') or user_info.get('user_name') or user_info.get('preferred_username') or ''
+    return email.strip().lower() in allowed_users
+
+
 def login_required(f):
     """Decorator to require authentication for a route."""
     @wraps(f)
@@ -213,11 +228,15 @@ def callback():
         token = oauth.sso.authorize_access_token()
         user_info = oauth.sso.userinfo()
     
+    if not is_user_allowed(user_info):
+        app.logger.warning(f"Access denied for user: {get_user_name(user_info)}")
+        return "Access denied: your account is not authorized to use this application.", 403
+
     session['user'] = dict(user_info)
     session['token'] = token
-    
+
     app.logger.info(f"User authenticated: {get_user_name(user_info)}")
-    
+
     return redirect(url_for('greeting'))
 
 
