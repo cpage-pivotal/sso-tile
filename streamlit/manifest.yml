@@ -1,0 +1,11 @@
+---
+applications:
+  - name: sso-tile-streamlit
+    memory: 512M
+    instances: 1
+    buildpacks:
+      - python_buildpack
+    services:
+      - sso
+    env:
+      SSO_SKIP_SSL_VALIDATION: 'true'
